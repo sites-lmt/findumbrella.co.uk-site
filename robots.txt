@@ -1,0 +1,9 @@
+# findumbrella.co.uk
+User-agent: *
+Allow: /
+
+# /quote/ and /results/ each carry a noindex meta tag. They are deliberately
+# NOT Disallowed here: robots.txt blocks crawling, which would stop search
+# engines ever reaching the page and reading the noindex directive.
+
+Sitemap: https://www.findumbrella.co.uk/sitemap.xml

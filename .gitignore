@@ -1,0 +1,14 @@
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor / tooling
+.vscode/
+.idea/
+
+# Internal notes must never live in the published web root.
+# Planning docs and the redirect map are kept in ../find-umbrella-internal/
+LAUNCH-PLAN.md
+migration-redirects.csv
+DEPLOY-RUNBOOK.md

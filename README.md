@@ -33,9 +33,10 @@ impressions (~19.7k impressions, only 8 clicks):
 
 The WordPress sitemap is unusable — `/sitemap_index.xml` and `/wp-sitemap.xml`
 both return `text/html` (a catch-all), not XML. The old URL list was recovered
-from the Wayback CDX index instead: **53 URLs**, of which **20 have no page in
-this build**. They must 301 to the closest equivalent or they will 404 on
-cutover. Map: `../find-umbrella-internal/migration-redirects.csv`.
+from the Wayback CDX index instead: **53 URLs**, of which **22 have no page in
+this build**. Each now has a redirect stub at its old path, so old links and
+bookmarks still land somewhere sensible rather than on a 404. Map:
+`../find-umbrella-internal/migration-redirects.csv`.
 
 Six were live, keyword-targeted landing pages, each with its own `<h1>`:
 

@@ -541,12 +541,17 @@ details.assumptions li { margin-bottom: 6px; }
   transition: border-color 0.15s, background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 .wz-option:hover span { border-color: var(--blue-line); transform: translateY(-1px); }
-.wz-option input:checked + span,
-.wz-option input:focus-visible + span {
+.wz-option input:checked + span {
   border-color: var(--blue);
   background: var(--blue-soft);
   color: var(--blue-dark);
   box-shadow: 0 6px 18px rgba(11, 107, 181, 0.12);
+}
+/* Keyboard focus is a ring only. It must not reuse the filled "selected" look
+   above, otherwise whichever option happens to be focused reads as pre-chosen. */
+.wz-option input:focus-visible + span {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
 }
 .wz-option input:checked + span::after { content: "✓"; float: right; color: var(--green); }
 

@@ -9,10 +9,18 @@
 
   /* ======== CONFIGURATION ======== */
 
-  // Cortoa's deployment URL. Everything below derives from it. While this is
-  // empty the wizard still works and still shows results — it just does not
-  // send the lead anywhere, which is why it must be set before launch.
-  const API_BASE = "";                   // e.g. "https://cortoa-xxxxx-ew.a.run.app"
+  // Cortoa's deployment URL. Everything below derives from it.
+  //
+  // Served from this machine, the wizard talks to the local backend, so the
+  // form can be exercised end to end without a deploy. Served from anywhere
+  // else it needs DEPLOYED_API_BASE, and while that is empty the wizard still
+  // works and still shows results — it just does not send the lead anywhere.
+  // Deriving it from the hostname rather than hardcoding a localhost URL means
+  // a local value can never be shipped to the live site by accident.
+  const LOCAL_API_BASE = "http://localhost:5010";
+  const DEPLOYED_API_BASE = "";          // e.g. "https://cortoa-xxxxx-ew.a.run.app"
+  const IS_LOCAL_HOST = ["localhost", "127.0.0.1"].includes(location.hostname);
+  const API_BASE = IS_LOCAL_HOST ? LOCAL_API_BASE : DEPLOYED_API_BASE;
   const PUBLIC_SLUG = "findumbrella";    // identifies the tenant. Public, not a secret.
 
   // Business rules the site still owns. Cortoa's /config endpoint serves the
@@ -20,11 +28,43 @@
   const AGENCY_BLOCKLIST = [];           // e.g. ["Agency Name"] — polite message if matched
 
   // Deal custom fields to send, keyed by the field key defined in Cortoa.
-  // MUST stay empty until matching field definitions exist for this team — the
-  // endpoint rejects unknown keys with a 400, which would lose the lead. Once
-  // confirmed, map Cortoa's key to a wizard answer, e.g.:
-  //   { ir35_status: "ir35", day_rate: "dayRate" }
-  const CUSTOM_FIELDS = {};
+  //
+  // Every key here MUST exist as a LEAD field definition for this team. The
+  // endpoint rejects the whole submission with a 400 otherwise — losing the name
+  // and email too, not just the field. Contact-entity fields are NOT accepted on
+  // this path: `ir35_status` lives on the contact, so sending it fails the
+  // submission. It travels in `message` instead.
+  //
+  // A value is either a wizard answer key, or a function of the answers for
+  // anything that needs deriving.
+  const HOURS_PER_DAY = 7.5;             // same figures results.js uses, so a
+  const WEEKS_PER_YEAR = 52;             // lead agrees with the visitor's own
+
+  const toNumber = (v) => {
+    const n = parseFloat(String(v == null ? "" : v).replace(/[^0-9.]/g, ""));
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  // Hourly or daily, always expressed as a day rate.
+  function dayRateFrom(answers) {
+    const rate = answers.rateType === "Hourly"
+      ? toNumber(answers.hourRate) * HOURS_PER_DAY
+      : toNumber(answers.dayRate);
+    return Math.round(rate);
+  }
+
+  const CUSTOM_FIELDS = {
+    day_rate: (s) => dayRateFrom(s) || undefined,
+    // Day rate x days a week x 52 — the annualisation /results/ already shows.
+    annualised_income: (s) => {
+      const days = parseInt(s.days, 10) || 0;
+      const rate = dayRateFrom(s);
+      return rate && days ? rate * days * WEEKS_PER_YEAR : undefined;
+    },
+    // They told us which agency they are with; nobody has vetted it yet. That is
+    // the honest starting state, and it is what the field is for.
+    agency_check: (s) => (s.viaAgency === "Yes" ? "unknown" : undefined),
+  };
 
   // Epoch seconds the form mounted. Cortoa treats a submission faster than 3s
   // as a bot, so this is set once at load — never when a field renders.
@@ -132,7 +172,10 @@
       name: state.name,
       email: state.email,
       phone: state.phone,
-      company: state.agency || "",
+      // The agency is a third party, not the visitor's employer. Sending it as
+      // `company` made the lead title read "Hays" instead of the person's name;
+      // it is already carried in `message`.
+      company: "",
       message: describeAnswers(),
       consent: true,          // the checkbox is enforced before we get here
       source: "inbound_form",
@@ -188,7 +231,7 @@
           <label class="sr-only" for="wzPhone">Your phone</label>
           <input class="wizard-input" id="wzPhone" name="phone" type="tel" inputmode="tel" placeholder="Your phone" autocomplete="tel" aria-label="Your phone" data-field="phone">
           <label class="wz-consent">
-            <input type="checkbox" data-consent>
+            <input type="checkbox" data-consent checked>
             <span>I'm happy to be contacted about this enquiry. See our <a href="../privacy-policy/" target="_blank" rel="noopener">privacy policy</a>.</span>
           </label>
           <div class="wz-turnstile" data-turnstile></div>
@@ -290,7 +333,10 @@
     // Nothing to go back to on the first question. Hide rather than remove so
     // the progress bar stays in the same place on every step.
     els.backBtn.style.visibility = i <= 0 ? "hidden" : "visible";
-    const input = stepEl(id) && stepEl(id).querySelector("input");
+    // Focus a text or number field so the user can type straight away. Deliberately
+    // NOT radios: focusing the first one gave it the focus ring, which reads as
+    // "already selected" and made people tap Next without choosing an answer.
+    const input = stepEl(id) && stepEl(id).querySelector('input[type="text"], input[type="email"], input[type="tel"], input[type="number"]');
     if (input) input.focus();
   }
 

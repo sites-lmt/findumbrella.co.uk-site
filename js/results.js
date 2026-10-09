@@ -8,14 +8,17 @@
 
   /* ======== CONFIG — edit providers here ======== */
   const WEEKS = 52;            // weeks per tax year used to annualise the rate
-  const ASSUMED_MARGIN = 25;   // £/week umbrella margin used when a provider's fee isn't set
+  const HOURS_PER_DAY = 7.5;   // used to turn an hourly rate into a daily equivalent
 
+  // Authored best-paying first: Ltd, then self-employed, then PAYE. The column a
+  // provider uses barely moves across the rate bands, so this order holds for every
+  // quote and is also the order the cards are displayed in.
   const PROVIDERS = [
     {
       name: "TJL Contractors",
       url: "",                     // add the provider's site to switch the CTA to "Visit site"
       ir35: "inside",
-      marginPerWeek: null,         // set a £/week fee to show this provider's own take-home figure
+      series: "ltd",               // which column of RATE_BANDS applies to this provider
       features: [
         "Free insurance cover",
         "No join or exit fees",
@@ -26,24 +29,10 @@
       more: "A PAYE-only umbrella with no joining or exit fees and insurance included. Popular with locums and healthcare contractors who want compliant payroll with a fixed weekly margin.",
     },
     {
-      name: "IFL Contracts",
-      url: "",
-      ir35: "both",
-      marginPerWeek: null,
-      features: [
-        "Low fees",
-        "Comprehensive insurance",
-        "High return option — via self-employed for those outside IR35",
-      ],
-      offer: "Joining offer — £120 paid after 3 months invoicing",
-      meta: "Suitable for contractors inside or outside IR35",
-      more: "Runs both PAYE umbrella payroll and a self-employed option for contractors who are outside IR35 — useful if your IR35 position changes between contracts.",
-    },
-    {
       name: "Runnymede",
       url: "",
       ir35: "outside",
-      marginPerWeek: null,
+      series: "se",
       features: [
         "Same-day pay",
         "Free to come and go — no exit fees",
@@ -55,10 +44,24 @@
       more: "Built for experienced contractors, with a named account manager and same-day payments once your agency funds clear. Best value on higher day rates.",
     },
     {
+      name: "IFL Contracts",
+      url: "",
+      ir35: "both",
+      series: "paye",
+      features: [
+        "Low fees",
+        "Comprehensive insurance",
+        "High return option — via self-employed for those outside IR35",
+      ],
+      offer: "Joining offer — £120 paid after 3 months invoicing",
+      meta: "Suitable for contractors inside or outside IR35",
+      more: "Runs both PAYE umbrella payroll and a self-employed option for contractors who are outside IR35 — useful if your IR35 position changes between contracts.",
+    },
+    {
       name: "Umbrella Company UK",
       url: "",
       ir35: "inside",
-      marginPerWeek: null,
+      series: "paye",
       features: [
         "Low fees",
         "Free insurance cover",
@@ -73,7 +76,7 @@
       name: "Orange Genie Umbrella",
       url: "",
       ir35: "inside",
-      marginPerWeek: null,
+      series: "paye",
       features: [
         "Low fees",
         "Free insurance cover",
@@ -163,19 +166,43 @@
   }
 
   const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
-  const dayRate = quote.rateType === "Hourly" ? num(quote.hourRate) * 7.5 : num(quote.dayRate);
+  const dayRate = quote.rateType === "Hourly" ? num(quote.hourRate) * HOURS_PER_DAY : num(quote.dayRate);
   const days = parseInt(quote.days, 10) || 5;
   const rate = dayRate * days * WEEKS;
 
+  /* ======== TAKE-HOME PERCENTAGES ========
+     A banded lookup, keyed on the daily-equivalent rate. These are the figures the
+     business supplied, so they are used as given rather than recalculated: the tax
+     model only ever produced one answer, because every provider shared a margin.
+
+     `max` is the top of the band, inclusive. Original column names:
+       paye    <- "tjl - paye"
+       ltd     <- "tek - ltd"
+       se      <- "ifl - SE"
+       preLoan <- "pre - Loan"  (no provider currently maps to this column)   */
+  const RATE_BANDS = [
+    { max: 100,      paye: 77,    ltd: 83,    se: 83,    preLoan: 85.6  },
+    { max: 200,      paye: 68,    ltd: 83.2,  se: 76.73, preLoan: 84.3  },
+    { max: 300,      paye: 63,    ltd: 82.8,  se: 69.1,  preLoan: 83.3  },
+    { max: 400,      paye: 59,    ltd: 81,    se: 64.18, preLoan: 82.7  },
+    { max: 500,      paye: 56,    ltd: 80.3,  se: 61.22, preLoan: 82.32 },
+    { max: 600,      paye: 53,    ltd: 80.4,  se: 59.54, preLoan: 82.1  },
+    { max: 700,      paye: 52,    ltd: 80.21, se: 58.74, preLoan: 81.94 },
+    { max: Infinity, paye: 52,    ltd: 80.11, se: 58.14, preLoan: 81.83 },
+  ];
+
+  function bandFor(dailyRate) {
+    for (let i = 0; i < RATE_BANDS.length; i++) {
+      if (dailyRate <= RATE_BANDS[i].max) return RATE_BANDS[i];
+    }
+    return RATE_BANDS[RATE_BANDS.length - 1];
+  }
+
   /* ======== TAKE-HOME PER PROVIDER ======== */
   function pctFor(provider) {
-    if (!rate) return 0;
-    const r = TaxCalc.umbrellaTakeHome({
-      dayRate: dayRate, daysPerWeek: days, weeksPerYear: WEEKS,
-      marginPerWeek: provider.marginPerWeek == null ? ASSUMED_MARGIN : provider.marginPerWeek,
-      region: "england", studentLoan: "none", pensionPct: 0, includeLevy: true,
-    });
-    return (r.takeHome / r.assignment) * 100;
+    if (!rate || !dayRate) return 0;
+    const pct = bandFor(dayRate)[provider.series];
+    return pct == null ? 0 : pct;
   }
 
   /* ======== HERO ======== */
@@ -209,19 +236,13 @@
     }, 34);
   })();
 
-  /* ======== MATCHING ORDER ======== */
-  // Providers that suit the contractor's IR35 position are shown first.
+  /* ======== MATCHING ORDER ========
+     Fixed: highest typical percentage first, i.e. the order PROVIDERS is authored in.
+     IR35 still drives the filter chips below, but it does not reorder the list — the
+     percentage each provider gets barely changes with rate, so a fixed order is the
+     honest one.                                                              */
   function ordered() {
-    const status = (quote.ir35 || "").toLowerCase();
-    const score = (p) => {
-      if (status === "inside") return (p.ir35 === "inside" || p.ir35 === "both") ? 0 : 2;
-      if (status === "outside") return (p.ir35 === "outside" || p.ir35 === "both") ? 0 : 1;
-      return 0; // "not sure" or unknown — keep the authored order
-    };
-    return PROVIDERS
-      .map((p, i) => ({ p, s: score(p), i }))
-      .sort((a, b) => a.s - b.s || a.i - b.i)
-      .map((x) => x.p);
+    return PROVIDERS.slice();
   }
 
   /* ======== PROVIDER CARDS ======== */

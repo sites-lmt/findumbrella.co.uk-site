@@ -481,6 +481,22 @@ details.assumptions li { margin-bottom: 6px; }
   .quote-page { padding: 18px 0 44px; }
 }
 
+/* The wait over the embedded form. js/cortoa-quote-embed.js builds it and sets
+   its placement inline, so a stylesheet older than the page cannot leave it
+   stacked above the frame; this is only the part that is about looks. */
+.embed-spinner {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 3px solid var(--blue-soft);
+  border-top-color: var(--blue);
+  animation: embedSpin 0.8s linear infinite;
+}
+@keyframes embedSpin { to { transform: rotate(360deg); } }
+.embed-loading p { margin: 0; font-size: 0.95rem; color: var(--text-soft); max-width: 34ch; }
+.embed-loading a { color: var(--blue); font-weight: 600; }
+@media (prefers-reduced-motion: reduce) { .embed-spinner { animation-duration: 2.6s; } }
+
 /* Visually hidden, still in the DOM: the quote page's heading, and any label an
    input needs without the design wanting one on screen. */
 .sr-only {

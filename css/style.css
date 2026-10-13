@@ -499,8 +499,10 @@ details.assumptions li { margin-bottom: 6px; }
 /* ---------- Results page ---------- */
 
 /* ---------- Arrival from the quote form ---------- */
-/* Shown by `html.arriving`, which the script in the head sets before the first
-   paint. Hidden by default, so a page whose scripts never run is still a page. */
+/* Whether the panel exists is the `hidden` attribute's job, not this rule's: the
+   stylesheet is cached for four hours, so it can be older than the page asking
+   for it, and CSS cannot hide what it never arrived to style. This only makes the
+   panel look right once something has decided to show it. */
 .match-gate {
   position: fixed;
   inset: 0;
@@ -509,11 +511,9 @@ details.assumptions li { margin-bottom: 6px; }
   place-items: center;
   padding: 24px;
   background: var(--white);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.45s ease, visibility 0.45s ease;
+  transition: opacity 0.45s ease;
 }
-html.arriving .match-gate { opacity: 1; visibility: visible; }
+.match-gate.is-done { opacity: 0; pointer-events: none; }
 .match-panel { width: min(400px, 100%); text-align: center; }
 
 .match-mark { font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; color: var(--ink); letter-spacing: -0.01em; }

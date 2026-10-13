@@ -366,9 +366,16 @@
     requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = "100%"; }));
 
     setTimeout(() => {
+      const gate = document.getElementById("matchGate");
       root.classList.remove("arriving");
       root.style.overflow = "";
       animateHero();
+      // Fade, then take it out of the page entirely — and if the stylesheet is
+      // older than this script, the fade is skipped and it goes at once.
+      if (gate) {
+        gate.classList.add("is-done");
+        setTimeout(() => { gate.hidden = true; }, 500);
+      }
     }, DURATION);
   })();
 

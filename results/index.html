@@ -31,17 +31,25 @@
       setTimeout(function () {
         root.classList.remove("arriving");
         root.style.overflow = "";
+        var gate = document.getElementById("matchGate");
+        if (gate) gate.hidden = true;
       }, 6000);
     })();
   </script>
 </head>
 <body>
 
-<!-- Arrival from the quote form. js/results.js shows this for a moment on the
-     way in — and only then: a visitor who landed here directly never sees it,
-     and neither does a second visit in the same session. Which arrival this is
-     was decided in the head, before the page painted; without that, the page
-     shows normally. -->
+<!-- Arrival from the quote form. js/results.js walks this through on the way in
+     — and only then: a visitor who landed here directly never sees it, and
+     neither does a second visit in the same session.
+
+     `hidden` rather than a rule that hides it, and the two-line script below
+     rather than removing the attribute here, because the panel has to be
+     *absent* and not merely styled away: this stylesheet is cached for four
+     hours, so a browser can be holding new markup and an old stylesheet at the
+     same time. A panel styled away by CSS that has not arrived is this text
+     sitting at the top of the page, which is exactly what it did. -->
+<div class="match-gate" id="matchGate" hidden>
 <div class="match-gate" id="matchGate">
   <div class="match-panel" role="status" aria-live="polite">
     <p class="match-mark">Find<span>Umbrella</span></p>
@@ -54,6 +62,21 @@
     </ul>
   </div>
 </div>
+<script>
+  // The head script decided; this applies it. It runs here, at the top of the
+  // body, so the panel is up before the rest of the page is parsed.
+  //
+  // The computed-style check is the guard against the stylesheet being older than
+  // this page — it is cached for four hours, so that is a normal thing to meet.
+  // If the panel is not styled, it is not shown at all, and the visitor gets the
+  // results page rather than a block of unstyled text above it.
+  (function () {
+    var gate = document.getElementById("matchGate");
+    if (!gate || !document.documentElement.classList.contains("arriving")) return;
+    if (window.getComputedStyle(gate).position !== "fixed") return;
+    gate.hidden = false;
+  })();
+</script>
 
 <div class="topbar">
   <div class="container">

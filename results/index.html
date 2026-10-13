@@ -43,14 +43,13 @@
      — and only then: a visitor who landed here directly never sees it, and
      neither does a second visit in the same session.
 
-     `hidden` rather than a rule that hides it, and the two-line script below
-     rather than removing the attribute here, because the panel has to be
+     `hidden` rather than a rule that hides it, and the script below rather than
+     removing the attribute here, because the panel has to be
      *absent* and not merely styled away: this stylesheet is cached for four
      hours, so a browser can be holding new markup and an old stylesheet at the
      same time. A panel styled away by CSS that has not arrived is this text
      sitting at the top of the page, which is exactly what it did. -->
 <div class="match-gate" id="matchGate" hidden>
-<div class="match-gate" id="matchGate">
   <div class="match-panel" role="status" aria-live="polite">
     <p class="match-mark">Find<span>Umbrella</span></p>
     <p class="match-title">Matching you with the providers we work with</p>

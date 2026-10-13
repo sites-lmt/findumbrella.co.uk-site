@@ -1,6 +1,7 @@
 /* ============================================================
    Find Umbrella — results page
-   Reads the saved quote (js/quote.js → sessionStorage) and renders
+   Reads the answers the Cortoa quote form handed over on the query
+   string, and renders
    matched providers with estimated take-home pay.
    ============================================================ */
 (function () {
@@ -149,16 +150,16 @@
     "Orange Genie Umbrella": { logo: "orange-genie-logo.jpg", url: "https://www.orangegenie.com/" },
   };
 
-  /* ======== READ THE SAVED QUOTE ========
-     Three sources, in order of freshness:
-       1. Handed over by the Cortoa quote form. That form is a different origin,
-          so it cannot write our sessionStorage — it navigates here with the
-          answers on the query string instead. The only source when the visitor
-          came from the embedded form.
-       2. Saved by our own wizard (sessionStorage).
-       3. Legacy: the answers as a JSON hash.
-     Keys and values are mapped to this page's shape, and anything missing falls
-     back to the defaults, so a partial handoff still renders a real quote. */
+  /* ======== READ THE ANSWERS ========
+     From the Cortoa quote form, which is a different origin: it cannot write
+     our sessionStorage, so it navigates here with the answers on the query
+     string instead. Keys and values are mapped to this page's shape, and
+     anything missing falls back to the defaults, so a partial handoff still
+     renders a real quote.
+
+     With no answers on the URL the page keeps its example figures and the demo
+     note: a visitor who lands here directly has not been quoted, and zeros
+     would read as a quote of nothing. */
   function quoteFromQuery() {
     const p = new URLSearchParams(location.search);
     if (!p.has("day_rate") && !p.has("hourly_rate") && !p.has("rate_type")) return null;
@@ -183,23 +184,12 @@
   let quote = DEFAULT_QUOTE;
   let isDemo = true;
 
+  // One source, because there is one form now. The wizard that wrote `fu_quote`
+  // into sessionStorage, and the older one that handed answers over in the URL
+  // hash, are both gone — a reader that still accepted them would render
+  // figures from a form nobody can reach.
   const handed = quoteFromQuery();
   if (handed) { quote = Object.assign({}, DEFAULT_QUOTE, handed); isDemo = false; }
-
-  if (isDemo) {
-    try {
-      const raw = sessionStorage.getItem("fu_quote");
-      if (raw) { quote = Object.assign({}, DEFAULT_QUOTE, JSON.parse(raw)); isDemo = false; }
-    } catch (e) { /* storage unavailable (some file:// setups) */ }
-  }
-
-  // Fallback: answers carried in the URL hash by the quote form
-  if (isDemo && location.hash.indexOf("#q=") === 0) {
-    try {
-      quote = Object.assign({}, DEFAULT_QUOTE, JSON.parse(decodeURIComponent(location.hash.slice(3))));
-      isDemo = false;
-    } catch (e) { /* bad hash — keep the example */ }
-  }
 
   const num = (v) => { const n = parseFloat(v); return isFinite(n) ? n : 0; };
   const dayRate = quote.rateType === "Hourly" ? num(quote.hourRate) * HOURS_PER_DAY : num(quote.dayRate);

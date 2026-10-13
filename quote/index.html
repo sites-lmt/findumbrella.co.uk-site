@@ -47,39 +47,18 @@
 
 <section class="section-tight quote-page">
   <div class="container" style="max-width:860px;">
-    <!-- Quote wizard. The intro sits inside the card so the first question
-         stays above the fold on a phone. -->
-    <div class="wizard reveal" id="quoteWizard">
-      <div class="wizard-card">
-        <div class="wizard-intro">
-          <h1>Get your free umbrella quote</h1>
-          <p>Answer a few questions and we'll match you with compliant umbrella companies — with real take-home figures and transparent fees.</p>
-          <ul class="quote-trust">
-            <li><strong>2</strong> minutes</li>
-            <li><strong>Free</strong> &amp; no obligation</li>
-            <li><strong>No</strong> sales calls from dozens of providers</li>
-            <li><strong>Instant</strong> take-home figures</li>
-          </ul>
-        </div>
-        <div class="wizard-head" id="wzHead" hidden>
-          <button class="wz-back" id="wzBack">← Back</button>
-          <div class="wizard-progress">
-            <div class="wz-track"><div class="wz-fill" id="wzFill"></div></div>
-            <span class="wz-label" id="wzLabel">Question 1 of 10</span>
-          </div>
-        </div>
-        <div id="wzSteps"></div>
-        <div class="wizard-nav" id="wzNav" hidden>
-          <span></span>
-          <button class="btn btn-primary" id="wzNext">Next</button>
-        </div>
-        <p class="kbd-hint" id="wzHint">Tip: press <strong>Enter</strong> to continue on written answers.</p>
-      </div>
-    </div>
+    <!-- The only way to get a quote: Cortoa's own form, mounted here by
+         js/cortoa-quote-embed.js — local Cortoa from this machine, the deployed
+         one anywhere else.
 
-    <!-- Local-only home for the Cortoa quote form. Populated by
-         js/cortoa-quote-embed.js while this site is served from this machine,
-         and left empty on the live site, where the wizard above is the form. -->
+         There is deliberately no second form behind it. A fallback meant two
+         ways to ask the same questions and two sets of answers, with no way to
+         tell from the results which one a visitor had used.
+
+         The h1 is the page's heading, not the form's: the form renders its own
+         title inside the frame, and two of them side by side reads as two
+         pages. -->
+    <h1 class="sr-only">Get your free umbrella quote</h1>
     <div id="cortoaQuote" hidden></div>
 
     <div class="grid grid-3 mt-lg">
@@ -165,7 +144,6 @@
   </div>
 </footer>
 
-<script src="../js/quote.js"></script>
 <script src="../js/main.js"></script>
 <script src="../js/cortoa-quote-embed.js"></script>
 </body>

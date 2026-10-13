@@ -12,8 +12,48 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css">
+  <script>
+    /* Decided here, in the head, because the panel has to be up before the page
+       paints: a curtain that arrives afterwards is a flash of the hero with its
+       placeholder dashes in it. Only an arrival that carries answers gets it —
+       the same three keys this page reads — and never when the visitor has asked
+       for reduced motion, or has already seen it earlier in the session. */
+    (function () {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      var p = new URLSearchParams(location.search);
+      if (!p.has("day_rate") && !p.has("hourly_rate") && !p.has("rate_type")) return;
+      try { if (sessionStorage.getItem("fu_matched") === "1") return; } catch (e) { return; }
+
+      var root = document.documentElement;
+      root.classList.add("arriving");
+      root.style.overflow = "hidden";
+      // If results.js never gets there, the curtain still comes up.
+      setTimeout(function () {
+        root.classList.remove("arriving");
+        root.style.overflow = "";
+      }, 6000);
+    })();
+  </script>
 </head>
 <body>
+
+<!-- Arrival from the quote form. js/results.js shows this for a moment on the
+     way in — and only then: a visitor who landed here directly never sees it,
+     and neither does a second visit in the same session. Which arrival this is
+     was decided in the head, before the page painted; without that, the page
+     shows normally. -->
+<div class="match-gate" id="matchGate">
+  <div class="match-panel" role="status" aria-live="polite">
+    <p class="match-mark">Find<span>Umbrella</span></p>
+    <p class="match-title">Matching you with the providers we work with</p>
+    <div class="match-track"><div class="match-fill" id="matchFill"></div></div>
+    <ul class="match-steps" id="matchSteps">
+      <li>Reading your answers</li>
+      <li>Comparing the providers</li>
+      <li>Working out your take-home</li>
+    </ul>
+  </div>
+</div>
 
 <div class="topbar">
   <div class="container">

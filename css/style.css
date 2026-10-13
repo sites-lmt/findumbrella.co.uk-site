@@ -497,6 +497,38 @@ details.assumptions li { margin-bottom: 6px; }
 }
 
 /* ---------- Results page ---------- */
+
+/* ---------- Arrival from the quote form ---------- */
+/* Shown by `html.arriving`, which the script in the head sets before the first
+   paint. Hidden by default, so a page whose scripts never run is still a page. */
+.match-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--white);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.45s ease, visibility 0.45s ease;
+}
+html.arriving .match-gate { opacity: 1; visibility: visible; }
+.match-panel { width: min(400px, 100%); text-align: center; }
+
+.match-mark { font-family: var(--font-head); font-weight: 800; font-size: 1.05rem; color: var(--ink); letter-spacing: -0.01em; }
+.match-mark span { color: var(--blue); }
+.match-title { font-family: var(--font-head); font-weight: 700; font-size: 1.15rem; line-height: 1.4; color: var(--ink); margin: 14px 0 20px; }
+
+.match-track { height: 6px; border-radius: 999px; background: var(--blue-soft); overflow: hidden; }
+/* Duration is set from js/results.js so the bar and the panel finish together. */
+.match-fill { height: 100%; width: 0; border-radius: 999px; background: linear-gradient(90deg, var(--blue), var(--teal)); transition-property: width; transition-timing-function: cubic-bezier(0.5, 0, 0.2, 1); }
+
+.match-steps { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 8px; font-size: 0.87rem; color: var(--text-soft); }
+.match-steps li { opacity: 0.4; transition: opacity 0.3s ease, color 0.3s ease; }
+.match-steps li::after { content: "\2713"; margin-left: 8px; font-weight: 700; color: var(--green); opacity: 0; transition: opacity 0.3s ease; }
+.match-steps li.on { opacity: 1; color: var(--ink); }
+.match-steps li.on::after { opacity: 1; }
 .results-hero {
   background:
     radial-gradient(900px 420px at 86% -18%, rgba(127, 195, 232, 0.30), transparent 62%),

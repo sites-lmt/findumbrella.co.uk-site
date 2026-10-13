@@ -247,11 +247,14 @@
   else document.getElementById("factAgencyChip").hidden = true;
   if (isDemo) document.getElementById("demoNote").hidden = false;
 
-  // animated ring + counter
-  requestAnimationFrame(() => {
-    document.getElementById("ringBar").style.strokeDashoffset = String(390 * (1 - best / 100));
-  });
-  (function countUp() {
+  /* ======== THE HERO, ON CUE ========
+     Held rather than started here: a visitor arriving from the form meets the
+     arrival panel first, and a number that has already finished counting up by
+     the time they see it is a number nobody watched. */
+  function animateHero() {
+    requestAnimationFrame(() => {
+      document.getElementById("ringBar").style.strokeDashoffset = String(390 * (1 - best / 100));
+    });
     const el = document.getElementById("heroPct");
     let n = 0;
     const step = Math.max(1, Math.round(best / 22));
@@ -260,7 +263,7 @@
       if (n >= best) { n = best; clearInterval(t); }
       el.textContent = n + "%";
     }, 34);
-  })();
+  }
 
   /* ======== MATCHING ORDER ========
      Fixed: highest typical percentage first, i.e. the order PROVIDERS is authored in.
@@ -309,12 +312,20 @@
       filter === "all" ? true : filter === "inside" ? p.ir35 !== "outside" : p.ir35 !== "inside"
     );
     grid.innerHTML = list.map((p, i) => card(p, i === 0)).join("");
+    // A stagger, so the list reads as arriving rather than as appearing at once.
+    // The delay belongs to the position, so it is set here rather than in the card.
+    grid.querySelectorAll(".provider-card").forEach((el, i) => {
+      el.style.transitionDelay = Math.min(i, 6) * 70 + "ms";
+    });
     grid.querySelectorAll("[data-details]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const p = PROVIDERS.find((x) => x.name === btn.dataset.details);
         if (p) openProvider(p);
       });
     });
+    // These cards are new elements, and the page's reveal observer has never seen
+    // them — without this they keep opacity 0 and the grid looks empty.
+    document.dispatchEvent(new Event("fu:reveal"));
   }
 
   document.querySelectorAll("[data-filter]").forEach((chip) => {
@@ -326,6 +337,40 @@
   });
 
   render();
+
+  /* ======== ARRIVAL FROM THE QUOTE FORM ========
+     Whether to show the panel at all was decided in the head, before the page
+     painted — that is the only place the decision can be made without a flash.
+     Here there is nothing to decide: if the curtain is up, walk it through and
+     bring it down.
+
+     Everything this page shows is already known, so nothing is being waited for.
+     It is a presentation of the handover, kept short for exactly that reason.
+     The hero animation starts when it lifts, so the count-up is watched rather
+     than already over. */
+  (function arrival() {
+    const root = document.documentElement;
+    if (!root.classList.contains("arriving")) { animateHero(); return; }
+
+    const DURATION = 2600;
+    try { sessionStorage.setItem("fu_matched", "1"); } catch (e) { /* fine */ }
+
+    const fill = document.getElementById("matchFill");
+    const steps = Array.prototype.slice.call(document.querySelectorAll("#matchSteps li"));
+    fill.style.transitionDuration = DURATION + "ms";
+    steps.forEach((li, i) => {
+      setTimeout(() => li.classList.add("on"), (DURATION / (steps.length + 1)) * (i + 1));
+    });
+    // Two frames: one for the browser to lay the bar out at zero, one to move it.
+    // Otherwise both land in the same frame and there is no transition to see.
+    requestAnimationFrame(() => requestAnimationFrame(() => { fill.style.width = "100%"; }));
+
+    setTimeout(() => {
+      root.classList.remove("arriving");
+      root.style.overflow = "";
+      animateHero();
+    }, DURATION);
+  })();
 
   /* ======== PROVIDER DETAIL MODAL ======== */
   const pModal = document.getElementById("providerModal");

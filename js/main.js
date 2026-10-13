@@ -46,7 +46,15 @@
     el.textContent = new Date().getFullYear();
   });
 
-  // Reveal on scroll
+  // Reveal on scroll.
+  //
+  // A scan can also be asked for, because the results grid rewrites itself on
+  // every filter click: the replacement cards are elements the observer has
+  // never seen. They kept `.reveal` — opacity 0 — with nothing left to remove
+  // it, so the grid went blank the moment a chip was pressed.
+  const revealables = () => document.querySelectorAll(".reveal:not(.visible)");
+  const showAll = () => revealables().forEach((el) => el.classList.add("visible"));
+
   if ("IntersectionObserver" in window) {
     const io = new IntersectionObserver(
       (entries) => {
@@ -59,8 +67,11 @@
       },
       { threshold: 0.12 }
     );
-    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    const scan = () => revealables().forEach((el) => io.observe(el));
+    document.addEventListener("fu:reveal", scan);
+    scan();
   } else {
-    document.querySelectorAll(".reveal").forEach((el) => el.classList.add("visible"));
+    document.addEventListener("fu:reveal", showAll);
+    showAll();
   }
 })();

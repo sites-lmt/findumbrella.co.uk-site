@@ -1,0 +1,17 @@
+# Normalise line endings: LF in the repository and in the working tree.
+# Without this, editing through the Windows mount flips every text file to
+# CRLF and git reports the whole site as modified.
+* text=auto eol=lf
+
+# Binary assets — never normalise these.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.webp binary
+*.avif binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.pdf  binary

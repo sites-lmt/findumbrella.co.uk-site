@@ -13,12 +13,13 @@
   //
   // Served from this machine, the wizard talks to the local backend, so the
   // form can be exercised end to end without a deploy. Served from anywhere
-  // else it needs DEPLOYED_API_BASE, and while that is empty the wizard still
-  // works and still shows results — it just does not send the lead anywhere.
-  // Deriving it from the hostname rather than hardcoding a localhost URL means
-  // a local value can never be shipped to the live site by accident.
+  // else it uses DEPLOYED_API_BASE. Deriving the base from the hostname rather
+  // than hardcoding a localhost URL means a local value can never be shipped to
+  // the live site by accident.
   const LOCAL_API_BASE = "http://localhost:5010";
-  const DEPLOYED_API_BASE = "";          // e.g. "https://cortoa-xxxxx-ew.a.run.app"
+  // Cortoa staging (GCP project cortoa-test) — the canonical Cloud Run URL, as
+  // reported by `gcloud run services list`. Leads from the live site go here.
+  const DEPLOYED_API_BASE = "https://backend-a6jgawowmq-ew.a.run.app";
   const IS_LOCAL_HOST = ["localhost", "127.0.0.1"].includes(location.hostname);
   const API_BASE = IS_LOCAL_HOST ? LOCAL_API_BASE : DEPLOYED_API_BASE;
   const PUBLIC_SLUG = "findumbrella";    // identifies the tenant. Public, not a secret.

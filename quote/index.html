@@ -77,6 +77,11 @@
       </div>
     </div>
 
+    <!-- Local-only home for the Cortoa quote form. Populated by
+         js/cortoa-quote-embed.js while this site is served from this machine,
+         and left empty on the live site, where the wizard above is the form. -->
+    <div id="cortoaQuote" hidden></div>
+
     <div class="grid grid-3 mt-lg">
       <div class="card reveal">
         <div class="icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8m8 4H8"/></svg></div>
@@ -162,5 +167,6 @@
 
 <script src="../js/quote.js"></script>
 <script src="../js/main.js"></script>
+<script src="../js/cortoa-quote-embed.js"></script>
 </body>
 </html>

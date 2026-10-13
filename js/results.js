@@ -149,13 +149,49 @@
     "Orange Genie Umbrella": { logo: "orange-genie-logo.jpg", url: "https://www.orangegenie.com/" },
   };
 
-  /* ======== READ THE SAVED QUOTE ======== */
+  /* ======== READ THE SAVED QUOTE ========
+     Three sources, in order of freshness:
+       1. Handed over by the Cortoa quote form. That form is a different origin,
+          so it cannot write our sessionStorage — it navigates here with the
+          answers on the query string instead. The only source when the visitor
+          came from the embedded form.
+       2. Saved by our own wizard (sessionStorage).
+       3. Legacy: the answers as a JSON hash.
+     Keys and values are mapped to this page's shape, and anything missing falls
+     back to the defaults, so a partial handoff still renders a real quote. */
+  function quoteFromQuery() {
+    const p = new URLSearchParams(location.search);
+    if (!p.has("day_rate") && !p.has("hourly_rate") && !p.has("rate_type")) return null;
+
+    const n = (v) => { const x = parseFloat(v); return isFinite(x) ? x : 0; };
+    const cap = (v) => (v ? v.charAt(0).toUpperCase() + v.slice(1).toLowerCase() : "");
+    // Any spelling of hourly is hourly; the page compares against "Hourly".
+    const rateType = /^h/i.test(p.get("rate_type") || "") ? "Hourly" : "Daily";
+
+    return {
+      rateType,
+      dayRate: n(p.get("day_rate")) || DEFAULT_QUOTE.dayRate,
+      hourRate: n(p.get("hourly_rate")) || undefined,
+      days: p.get("days_per_week") || DEFAULT_QUOTE.days,
+      ir35: cap(p.get("ir35_position")) || DEFAULT_QUOTE.ir35,
+      hasContract: cap(p.get("has_contract")) || DEFAULT_QUOTE.hasContract,
+      viaAgency: cap(p.get("via_agency")) || DEFAULT_QUOTE.viaAgency,
+      agency: p.get("agency") || "",
+    };
+  }
+
   let quote = DEFAULT_QUOTE;
   let isDemo = true;
-  try {
-    const raw = sessionStorage.getItem("fu_quote");
-    if (raw) { quote = Object.assign({}, DEFAULT_QUOTE, JSON.parse(raw)); isDemo = false; }
-  } catch (e) { /* storage unavailable (some file:// setups) */ }
+
+  const handed = quoteFromQuery();
+  if (handed) { quote = Object.assign({}, DEFAULT_QUOTE, handed); isDemo = false; }
+
+  if (isDemo) {
+    try {
+      const raw = sessionStorage.getItem("fu_quote");
+      if (raw) { quote = Object.assign({}, DEFAULT_QUOTE, JSON.parse(raw)); isDemo = false; }
+    } catch (e) { /* storage unavailable (some file:// setups) */ }
+  }
 
   // Fallback: answers carried in the URL hash by the quote form
   if (isDemo && location.hash.indexOf("#q=") === 0) {

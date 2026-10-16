@@ -13,6 +13,11 @@
    its content, forwards our query string *into* the form, and — after a
    submission — asks this page to navigate, so the visitor lands on the results
    page with the answers on the query string rather than inside a form-sized box.
+
+   This file also owns the *wait*, which is the part that matters when Cortoa is
+   starting a container from cold. A spinner covers the slot from the first paint;
+   if it is taking a while we offer the phone number and carry on waiting; and if
+   embed.js itself fails to arrive we ask for it again. See the thresholds below.
    ============================================================ */
 (function () {
   "use strict";
@@ -25,6 +30,25 @@
   var CORTQA_BASE = IS_LOCAL ? LOCAL_BASE : DEPLOYED_BASE;
 
   var SLUG = "findumbrella-quote";             // the form's slug in Cortoa
+
+  // The number this page already carries in its header and footer, written once:
+  // it appears in two states below, and two copies of a phone number is one copy
+  // that goes stale.
+  var PHONE = "020 8191 2489";
+  var PHONE_HREF = "tel:02081912489";
+
+  /* How long to wait, and what to say while we do.
+
+     Twelve seconds used to be the whole of it: the spinner stopped and the
+     visitor was told to ring us. That is *inside* a cold start — Cortoa starting
+     a container is slow, not broken — so the page was giving up on a form that
+     was still on its way, and the visitor rang because the site had told them to.
+
+     Two thresholds, because "nothing yet" and "nothing ever" are different facts.
+     At the first we add the phone number and carry on waiting. Only at the
+     second, where the form is genuinely not coming, do we stop the spinner. */
+  var STILL_LOADING_MS = 25000;   // offer the phone, keep the spinner
+  var GIVE_UP_MS = 90000;         // stop pretending it is still coming
 
   var mount = document.getElementById("cortoaQuote");
   if (!mount) return;
@@ -56,10 +80,15 @@
   );
   placeholder.innerHTML =
     '<span class="embed-spinner" aria-hidden="true"></span>' +
-    "<p id=\"embedLoadingText\">Loading your quote form\u2026</p>";
+    '<p id="embedLoadingText">Loading your quote form…</p>';
   slot.appendChild(placeholder);
 
   mount.hidden = false;
+
+  function setLoadingText(html) {
+    var text = document.getElementById("embedLoadingText");
+    if (text) text.innerHTML = html;
+  }
 
   /* Take the placeholder down when the form says it is there.
      embed.js posts the frame's height once it has laid out, and that — not the
@@ -86,23 +115,52 @@
     formArrived();
   });
 
-  // Nothing has come back. Say something true rather than spin for ever — and
-  // offer the phone, which is the thing that actually helps.
+  // Taking a while. Say so, offer the phone — and carry on waiting, because the
+  // frame can still arrive and waiting is the thing the visitor actually needs.
   setTimeout(function () {
     if (settled) return;
-    var text = document.getElementById("embedLoadingText");
+    setLoadingText(
+      "Still loading — this takes longer the first time. Call us on " +
+        '<a href="' + PHONE_HREF + '">' + PHONE + "</a> if you would rather not wait."
+    );
+  }, STILL_LOADING_MS);
+
+  // Long enough that it is not coming. Now stop the spinner, because a spinner
+  // that never stops is a lie, and offer the thing that actually helps.
+  setTimeout(function () {
+    if (settled) return;
     var spinner = slot.querySelector(".embed-spinner");
     if (spinner) spinner.style.display = "none";
-    if (text) {
-      text.innerHTML =
-        "This is taking longer than it should. Call us on " +
-        '<a href="tel:02081912489">020 8191 2489</a> and we will sort your quote out.';
-    }
-  }, 12000);
+    setLoadingText(
+      "We could not load the quote form. Call us on " +
+        '<a href="' + PHONE_HREF + '">' + PHONE + "</a> and we will sort your quote over the phone."
+    );
+  }, GIVE_UP_MS);
 
+  /* Loading embed.js, with a second try.
 
-  var script = document.createElement("script");
-  script.async = true;
-  script.src = CORTQA_BASE + "/embed.js";
-  document.body.appendChild(script);
+     A cold start can fail this request outright — a 502 or a 503 from the
+     platform while the container is starting — and that is a different failure
+     from the form being slow: no frame is ever created, so there is nothing to
+     wait for. Retrying is cheap, and the next request usually meets a container
+     that is already up. Nothing is said while we retry: a message that resolves
+     itself is worse than a spinner. */
+  var attempts = 0;
+
+  function loadEmbed() {
+    var script = document.createElement("script");
+    script.async = true;
+    script.src = CORTQA_BASE + "/embed.js";
+    script.onerror = function () {
+      if (script.parentNode) script.parentNode.removeChild(script);
+      if (settled) return;
+      attempts += 1;
+      if (attempts > 3) return;      // the timers above take it from here
+      setLoadingText("Still loading…");
+      setTimeout(loadEmbed, attempts * 1500);
+    };
+    document.body.appendChild(script);
+  }
+
+  loadEmbed();
 })();

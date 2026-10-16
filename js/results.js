@@ -239,20 +239,36 @@
     return pct == null ? 0 : pct;
   }
 
-  /* What a card prints as the take-home figure.
-
-     A provider with `pctRange` prints the range the business gave, because for IFL
-     the single banded number describes one of its two options and would understate
-     the other. Everyone else prints the figure the bands produce. */
-  function pctText(provider) {
-    if (Array.isArray(provider.pctRange) && provider.pctRange.length === 2) {
-      return provider.pctRange[0] + "% to " + provider.pctRange[1] + "%";
-    }
-    return Math.round(pctFor(provider)) + "%";
+  /* A provider's supplied range, if it has one. One place that decides what counts
+     as a range, so the text, the headline and the card cannot disagree about it. */
+  function rangeOf(provider) {
+    const r = provider.pctRange;
+    return Array.isArray(r) && r.length === 2 ? r : null;
   }
 
-  /* ======== HERO ======== */
-  const best = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
+  /* What a card prints as the take-home figure.
+
+     A provider with a range prints the range the business gave, because for IFL the
+     single banded number describes one of its two options and would understate the
+     other. Everyone else prints the figure the bands produce. */
+  function pctText(provider) {
+    const r = rangeOf(provider);
+    return r ? r[0] + "% to " + r[1] + "%" : Math.round(pctFor(provider)) + "%";
+  }
+
+  /* The highest figure a provider can print — the top of its range where it has one,
+     otherwise its banded figure. */
+  function pctHigh(provider) {
+    const r = rangeOf(provider);
+    return r ? r[1] : pctFor(provider);
+  }
+
+  /* ======== HERO ========
+     The headline number and the ring are the highest figure any card prints, which is
+     the top of IFL's range — the same number as the card sitting directly underneath.
+     Read from the providers rather than written here, so moving IFL's range moves both
+     and the page cannot end up claiming one number at the top and another below it. */
+  const best = Math.round(Math.max.apply(null, PROVIDERS.map(pctHigh)));
   const fmtMoney = (n) => "£" + Math.round(n).toLocaleString("en-GB");
 
   document.getElementById("heroPct").textContent = best + "%";
@@ -306,7 +322,7 @@
   let filter = "all";
 
   function card(p, isBest) {
-    const range = Array.isArray(p.pctRange);
+    const range = rangeOf(p);
     const info = PROVIDER_INFO[p.name] || {};
     const url = p.url || info.url || "";
     const external = !!url;

@@ -13,7 +13,8 @@
 
   // Authored best-paying first: Ltd, then self-employed, then PAYE. The column a
   // provider uses barely moves across the rate bands, so this order holds for every
-  // quote and is also the order the cards are displayed in.
+  // quote. One provider is marked `pinned` and is shown ahead of all of it — see
+  // MATCHING ORDER, below.
   const PROVIDERS = [
     {
       name: "TJL Contractors",
@@ -49,6 +50,13 @@
       url: "",
       ir35: "both",
       series: "paye",
+      // Shown first and badged "Best match" on every quote, whatever the figures
+      // say. See MATCHING ORDER.
+      pinned: true,
+      // Supplied by the business rather than read from RATE_BANDS: the spread across
+      // IFL's own PAYE and self-employed options, low end to high end. A provider
+      // with a range shows the range instead of its single banded figure.
+      pctRange: [56, 88],
       features: [
         "Low fees",
         "Comprehensive insurance",
@@ -231,6 +239,18 @@
     return pct == null ? 0 : pct;
   }
 
+  /* What a card prints as the take-home figure.
+
+     A provider with `pctRange` prints the range the business gave, because for IFL
+     the single banded number describes one of its two options and would understate
+     the other. Everyone else prints the figure the bands produce. */
+  function pctText(provider) {
+    if (Array.isArray(provider.pctRange) && provider.pctRange.length === 2) {
+      return provider.pctRange[0] + "% to " + provider.pctRange[1] + "%";
+    }
+    return Math.round(pctFor(provider)) + "%";
+  }
+
   /* ======== HERO ======== */
   const best = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
   const fmtMoney = (n) => "£" + Math.round(n).toLocaleString("en-GB");
@@ -266,12 +286,19 @@
   }
 
   /* ======== MATCHING ORDER ========
-     Fixed: highest typical percentage first, i.e. the order PROVIDERS is authored in.
-     IR35 still drives the filter chips below, but it does not reorder the list — the
-     percentage each provider gets barely changes with rate, so a fixed order is the
-     honest one.                                                              */
+     IFL Contracts first, on every quote.
+
+     That top place is a decision the business has made, not something the figures
+     produced: IFL is the group's own provider, and on the numbers alone it would
+     sit third. So it is a `pinned` flag on the provider rather than its position in
+     the array — a position would read to whoever opens this file next as "the
+     numbers said so", which is exactly what it is not.
+
+     The rest keep the authored order, highest typical percentage first. IR35 still
+     drives the filter chips below, but it does not reorder the list — the percentage
+     each provider gets barely changes with rate, so a fixed order is the honest one. */
   function ordered() {
-    return PROVIDERS.slice();
+    return PROVIDERS.filter((p) => p.pinned).concat(PROVIDERS.filter((p) => !p.pinned));
   }
 
   /* ======== PROVIDER CARDS ======== */
@@ -279,7 +306,7 @@
   let filter = "all";
 
   function card(p, isBest) {
-    const pct = Math.round(pctFor(p));
+    const range = Array.isArray(p.pctRange);
     const info = PROVIDER_INFO[p.name] || {};
     const url = p.url || info.url || "";
     const external = !!url;
@@ -295,7 +322,7 @@
             <div class="pc-name">${p.name}</div>
             <div class="pc-tag">${p.ir35 === "inside" ? "Inside IR35" : p.ir35 === "outside" ? "Outside IR35" : "Inside or outside IR35"}</div>
           </div>
-          <div class="pc-pct"><b>${pct}%</b><span>you get</span></div>
+          <div class="pc-pct"><b${range ? ' class="is-range"' : ""}>${pctText(p)}</b><span>you get</span></div>
         </div>
         <ul class="pc-list">${p.features.map((f) => `<li>${f}</li>`).join("")}</ul>
         ${p.offer ? `<div class="pc-offer">🎁 ${p.offer}</div>` : ""}
@@ -420,7 +447,7 @@
       else { logo.hidden = true; logo.removeAttribute("src"); }
     }
     document.getElementById("pmName").textContent = p.name;
-    document.getElementById("pmPct").textContent = Math.round(pctFor(p)) + "%";
+    document.getElementById("pmPct").textContent = pctText(p);
     pBody.innerHTML = html;
     if (pModal && pModal.showModal) pModal.showModal();
   }

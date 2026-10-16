@@ -599,6 +599,9 @@ details.assumptions li { margin-bottom: 6px; }
 .pc-tag { font-size: 0.76rem; color: var(--text-soft); margin-top: 4px; }
 .pc-pct { text-align: right; flex: 0 0 auto; }
 .pc-pct b { display: block; font-family: var(--font-head); font-size: 1.85rem; color: var(--green); line-height: 1; }
+/* A supplied range ("56% to 88%") is three times the width of a percentage at the
+   heading size, so it steps down a size and stays on one line. */
+.pc-pct b.is-range { font-size: 1.15rem; line-height: 1.2; white-space: nowrap; }
 .pc-pct span { font-size: 0.68rem; color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em; }
 .pc-list { list-style: none; margin: 0 0 16px; }
 .pc-list li { position: relative; padding: 6px 0 6px 26px; font-size: 0.92rem; }

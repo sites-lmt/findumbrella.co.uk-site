@@ -67,6 +67,18 @@ LAUNCH-PLAN.md.
 Static GitHub Pages, same pattern as the sibling sites (`sites-lmt/*-site`).
 Step-by-step in `../find-umbrella-internal/DEPLOY-RUNBOOK.md`.
 
+**This folder is its own git repo** — `sites-lmt/findumbrella.co.uk-site`, which
+is what GitHub Pages serves. Publishing is a commit and a push *here*. The outer
+`Umbrella` repo holds it as a gitlink and no copy of the files; when it held real
+copies, three weeks of edits went into the outer repo and nothing reached the
+site.
+
+**Bump the `?v=` on `js/main.js` and `js/cortoa-quote-embed.js` whenever either
+file changes.** Cloudflare serves `.js` with `max-age=14400`, so without a new
+version string a publish is invisible to visitors for up to four hours — HTML is
+not cached, so the tag in the page is what takes effect immediately. Cortoa's own
+`/embed.js` is `max-age=0` and needs no stamp.
+
 `www.findumbrella.co.uk` is the canonical host (see the `CNAME` file). Today the
 `www` A record points at a DigitalOcean host running WordPress, and the apex is
 GoDaddy-parked with **no working HTTPS at all**. DNS lives at GoDaddy; email is

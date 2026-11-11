@@ -55,12 +55,18 @@
 
   var slot = document.createElement("div");
   slot.setAttribute("data-cortoa-form", SLUG);
-  slot.setAttribute("data-min-height", "640");
+  // The room reserved before the frame can measure itself, and the frame's own
+  // floor until it does. Both are the *form's* height, not a guess at a page:
+  // 640 was chosen for a longer form, and the form now settles at 369, so the
+  // slot opened 271px taller than its content and collapsed when the frame
+  // arrived. A reserve that is close to the real height still does its job —
+  // nothing jumps while the frame loads — without opening a hole above it.
+  slot.setAttribute("data-min-height", "400");
   // The slot holds the space before the frame exists, so the page does not jump
   // when embed.js arrives — and the placeholder overlaps the frame instead of
   // sitting above it, so taking the placeholder away moves nothing either.
   slot.style.position = "relative";
-  slot.style.minHeight = "640px";
+  slot.style.minHeight = "400px";
   mount.appendChild(slot);
 
   // Centred and covered from inline styles, not from the stylesheet: this element

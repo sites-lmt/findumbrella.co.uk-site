@@ -49,7 +49,7 @@
   <div class="container">
     <nav class="breadcrumbs"><a href="../index.html">Home</a> / Cookie Policy</nav>
     <h1>Cookie policy</h1>
-    <p class="lead">What cookies are, which ones this website uses, and how to control them. Last updated: September 2026.</p>
+    <p class="lead">What cookies are, which ones this website uses, and how to control them. Last updated: November 2026.</p>
   </div>
 </section>
 
@@ -62,12 +62,15 @@
       <h2>Cookies we use</h2>
       <ul>
         <li><strong>Essential cookies:</strong> required for the website to work. These cannot be switched off.</li>
+        <li><strong>Attribution cookie (optional):</strong> if you arrived from an advert, we ask whether we may remember the reference from that click — it is how we know which advert led to an enquiry. The cookie is <code>_Cortoa_click_ids</code>, it holds that reference and nothing else, and it is kept for 90 days. No profile of you is built, no browsing history is recorded, and it is only set if you accept.</li>
         <li><strong>Third-party cookies:</strong> our quote form includes Cloudflare Turnstile, a bot-protection check that may set cookies or use similar technologies to tell people apart from automated traffic. We do not use third-party form providers.</li>
       </ul>
-      <p>We do not use analytics or advertising cookies, which is why no cookie banner is shown.</p>
+      <p>We do not use advertising or analytics cookies beyond the attribution cookie above, and nothing is stored on your device until you answer the question.</p>
 
       <h2>Managing cookies</h2>
-      <p>Because we only set essential and bot-protection cookies, there is nothing to opt out of on this site. You can still block or clear cookies in your browser at any time. Note that disabling cookies may affect how parts of the site work.</p>
+      <p>When you first arrive, a small banner asks whether we may remember the advert that brought you here. "No thanks" is a complete answer: the site works exactly the same, and the reference simply is not stored — it stays in the web address for that visit only. You can change your answer at any time:</p>
+      <p><button type="button" class="btn btn-primary" onclick="if (window.CortoaAttribution) { CortoaAttribution.open(); } else { window.location.reload(); }">Change your cookie choice</button></p>
+      <p>You can also block or clear cookies in your browser at any time. Note that disabling cookies may affect how parts of the site work.</p>
 
       <h2>Contact</h2>
       <p>Questions about this policy? Email <a href="mailto:info@findumbrella.co.uk">info@findumbrella.co.uk</a> or call 020 8191 2489. See also our <a href="../privacy-policy/">privacy policy</a>.</p>
@@ -123,6 +126,7 @@
   </div>
 </footer>
 
+<script src="https://frontend-237211824257.europe-west1.run.app/attribution.js" data-accent="#0b6bb5" data-policy-url="../cookie-policy/" async></script>
 <script src="../js/main.js?v=20261111"></script>
 </body>
 </html>

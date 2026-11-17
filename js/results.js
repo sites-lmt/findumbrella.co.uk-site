@@ -240,11 +240,21 @@
      the email that arrived minutes later said 63%. Two numbers for one quote, in
      writing, both from us.
 
+     **Where that number comes from, in order.** The quote form computes it from the
+     visitor's own figures and hands it over on the query string
+     (`se_retention_display`), so the page prints the same number the email will.
+     The banded table below is the fallback for somebody who landed here without
+     one — a direct visit, a bookmark, or a quote taken before the form started
+     handing it over. Recomputing it from the bands when it *was* handed would put
+     two versions of the same arithmetic back in play, which is what produced the
+     disagreement in the first place.
+
      The higher figure has not gone anywhere: it is the quiet line underneath,
      where "up to" belongs. That is a real option for some people, and it is not
      the headline claim. */
   const band = bandFor(dayRate);
-  const sePct = Math.round(band.se == null ? 0 : band.se);
+  const handedSe = num(new URLSearchParams(location.search).get("se_retention_display"));
+  const sePct = Math.round(handedSe > 0 ? handedSe : band.se == null ? 0 : band.se);
   const bestPct = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
   // A quote that could not be worked out says nothing rather than "£0 take-home".
   const heroPct = sePct || bestPct;

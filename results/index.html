@@ -111,7 +111,7 @@
 <section class="results-hero">
   <div class="container">
     <span class="eyebrow on-dark">Your matches are ready</span>
-    <h1>We estimate you can take home up to <span id="heroPct">—</span></h1>
+    <h1>We estimate you can take home <span id="heroPct">—</span></h1>
     <p class="lead">Your best matched umbrella companies, based on the details of your current or upcoming contract — including fees, insurance and joining offers.</p>
 
     <div class="result-ring">
@@ -135,6 +135,12 @@
         </p>
       </div>
     </div>
+    <!-- The higher figures are real, and they are a different structure to the one
+         the headline quotes — so they are said quietly, and only when they are
+         actually higher. See the HERO block in js/results.js. -->
+    <p id="optionLine" style="margin-top:14px; font-size:0.86rem; color:#93a9bf;" hidden>
+      Potential options for up to <b id="optionPct">—</b> depending on your situation.
+    </p>
     <p class="disclaimer on-dark" id="demoNote" hidden style="color:#93a9bf;">You're viewing an example result. <a href="../quote/" style="color:#a3d5f1;">Run your own quote</a> for personalised matches.</p>
   </div>
 </section>

@@ -231,12 +231,33 @@
     return pct == null ? 0 : pct;
   }
 
-  /* ======== HERO ======== */
-  const best = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
+  /* ======== HERO ========
+     Two figures, and they answer different questions.
+
+     The **hero** is the self-employed route (`se`), because that is the one the
+     first email recommends and quotes a percentage for. It used to show the best
+     of *all* the columns, which is the Ltd route — so the page promised 80% and
+     the email that arrived minutes later said 63%. Two numbers for one quote, in
+     writing, both from us.
+
+     The higher figure has not gone anywhere: it is the quiet line underneath,
+     where "up to" belongs. That is a real option for some people, and it is not
+     the headline claim. */
+  const band = bandFor(dayRate);
+  const sePct = Math.round(band.se == null ? 0 : band.se);
+  const bestPct = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
+  // A quote that could not be worked out says nothing rather than "£0 take-home".
+  const heroPct = sePct || bestPct;
   const fmtMoney = (n) => "£" + Math.round(n).toLocaleString("en-GB");
 
-  document.getElementById("heroPct").textContent = best + "%";
-  document.getElementById("ringPct").textContent = best + "%";
+  document.getElementById("heroPct").textContent = heroPct + "%";
+  document.getElementById("ringPct").textContent = heroPct + "%";
+  const optionEl = document.getElementById("optionPct");
+  const optionLine = document.getElementById("optionLine");
+  if (optionEl) optionEl.textContent = bestPct + "%";
+  // Hidden unless there is genuinely something higher to say. "Up to" below the
+  // figure it is already showing is noise, and a claim without a ceiling is worse.
+  if (optionLine) optionLine.hidden = bestPct <= heroPct;
   document.getElementById("factRate").textContent = quote.rateType === "Hourly"
     ? fmtMoney(num(quote.hourRate)) + "/hr" : fmtMoney(num(quote.dayRate)) + "/day";
   document.getElementById("factDays").textContent = days;
@@ -253,14 +274,14 @@
      the time they see it is a number nobody watched. */
   function animateHero() {
     requestAnimationFrame(() => {
-      document.getElementById("ringBar").style.strokeDashoffset = String(390 * (1 - best / 100));
+      document.getElementById("ringBar").style.strokeDashoffset = String(390 * (1 - heroPct / 100));
     });
     const el = document.getElementById("heroPct");
     let n = 0;
-    const step = Math.max(1, Math.round(best / 22));
+    const step = Math.max(1, Math.round(heroPct / 22));
     const t = setInterval(() => {
       n += step;
-      if (n >= best) { n = best; clearInterval(t); }
+      if (n >= heroPct) { n = heroPct; clearInterval(t); }
       el.textContent = n + "%";
     }, 34);
   }

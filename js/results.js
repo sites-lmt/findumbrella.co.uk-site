@@ -11,15 +11,35 @@
   const WEEKS = 52;            // weeks per tax year used to annualise the rate
   const HOURS_PER_DAY = 7.5;   // used to turn an hourly rate into a daily equivalent
 
-  // Authored best-paying first: Ltd, then self-employed, then PAYE. The column a
-  // provider uses barely moves across the rate bands, so this order holds for every
-  // quote and is also the order the cards are displayed in.
+  // Authored best first, because this order *is* the recommendation: the top card
+  // carries the "Best match" ribbon and is the one the first email is about.
+  //
+  // IFL leads. The other two are here because they can place a contractor on the
+  // same self-employed arrangement, so they are quoted at the same percentage — the
+  // column a provider uses is what decides its figure, not its position.
   const PROVIDERS = [
+    {
+      name: "IFL Contracts",
+      url: "",
+      ir35: "both",
+      series: "se",                // which column of RATE_BANDS applies to this provider
+      // The recommendation, and the only card whose figure the "up to" line belongs
+      // to: the higher-return structures are theirs to discuss.
+      best: true,
+      features: [
+        "Low fees",
+        "Comprehensive insurance",
+        "High return option — via self-employed for those outside IR35",
+      ],
+      offer: "Joining offer — £120 paid after 3 months invoicing",
+      meta: "Suitable for contractors inside or outside IR35",
+      more: "Runs both PAYE umbrella payroll and a self-employed option for contractors who are outside IR35 — useful if your IR35 position changes between contracts.",
+    },
     {
       name: "TJL Contractors",
       url: "",                     // add the provider's site to switch the CTA to "Visit site"
       ir35: "inside",
-      series: "ltd",               // which column of RATE_BANDS applies to this provider
+      series: "se",
       features: [
         "Free insurance cover",
         "No join or exit fees",
@@ -43,20 +63,6 @@
       offer: "Joining offer — up to £1,200, depending on rate",
       meta: "Main demographic — IT Professionals, Healthcare",
       more: "Built for experienced contractors, with a named account manager and same-day payments once your agency funds clear. Best value on higher day rates.",
-    },
-    {
-      name: "IFL Contracts",
-      url: "",
-      ir35: "both",
-      series: "paye",
-      features: [
-        "Low fees",
-        "Comprehensive insurance",
-        "High return option — via self-employed for those outside IR35",
-      ],
-      offer: "Joining offer — £120 paid after 3 months invoicing",
-      meta: "Suitable for contractors inside or outside IR35",
-      more: "Runs both PAYE umbrella payroll and a self-employed option for contractors who are outside IR35 — useful if your IR35 position changes between contracts.",
     },
     {
       name: "Umbrella Company UK",
@@ -224,9 +230,16 @@
     return RATE_BANDS[RATE_BANDS.length - 1];
   }
 
-  /* ======== TAKE-HOME PER PROVIDER ======== */
+  /* ======== TAKE-HOME PER PROVIDER ========
+     What this provider would leave you, at this rate.
+
+     A provider on the self-employed route is quoted at **the figure Cortoa worked
+     out** — the same number the first email quotes — so three cards offering the
+     same arrangement cannot show three different percentages. PAYE providers read
+     their own column, because that is the route their figure is about. */
   function pctFor(provider) {
     if (!rate || !dayRate) return 0;
+    if (provider.series === "se") return seFigure;
     const pct = bandFor(dayRate)[provider.series];
     return pct == null ? 0 : pct;
   }
@@ -250,24 +263,28 @@
      disagreement in the first place.
 
      The higher figure has not gone anywhere: it is the quiet line underneath,
-     where "up to" belongs. That is a real option for some people, and it is not
-     the headline claim. */
+     where "up to" belongs. And it is **IFL's** figure, not a competitor's — the
+     loans and higher-return structures are the ones worth a conversation, which is
+     what that line is inviting. Taking it from another provider's card made the page
+     promise something no card on it offered. */
   const band = bandFor(dayRate);
   const handedSe = num(new URLSearchParams(location.search).get("se_retention_display"));
-  const sePct = Math.round(handedSe > 0 ? handedSe : band.se == null ? 0 : band.se);
-  const bestPct = Math.round(Math.max.apply(null, PROVIDERS.map(pctFor)));
+  const seFigure = handedSe > 0 ? handedSe : band.se == null ? 0 : band.se;
+  const sePct = Math.round(seFigure);
+  // The ceiling of the higher-return routes, which is what "up to" is about.
+  const ceilingPct = Math.round(band.preLoan == null ? 0 : band.preLoan);
   // A quote that could not be worked out says nothing rather than "£0 take-home".
-  const heroPct = sePct || bestPct;
+  const heroPct = sePct || ceilingPct;
   const fmtMoney = (n) => "£" + Math.round(n).toLocaleString("en-GB");
 
   document.getElementById("heroPct").textContent = heroPct + "%";
   document.getElementById("ringPct").textContent = heroPct + "%";
   const optionEl = document.getElementById("optionPct");
   const optionLine = document.getElementById("optionLine");
-  if (optionEl) optionEl.textContent = bestPct + "%";
+  if (optionEl) optionEl.textContent = ceilingPct + "%";
   // Hidden unless there is genuinely something higher to say. "Up to" below the
   // figure it is already showing is noise, and a claim without a ceiling is worse.
-  if (optionLine) optionLine.hidden = bestPct <= heroPct;
+  if (optionLine) optionLine.hidden = ceilingPct <= heroPct;
   document.getElementById("factRate").textContent = quote.rateType === "Hourly"
     ? fmtMoney(num(quote.hourRate)) + "/hr" : fmtMoney(num(quote.dayRate)) + "/day";
   document.getElementById("factDays").textContent = days;
@@ -330,6 +347,9 @@
         </div>
         <ul class="pc-list">${p.features.map((f) => `<li>${f}</li>`).join("")}</ul>
         ${p.offer ? `<div class="pc-offer">🎁 ${p.offer}</div>` : ""}
+        ${p.best && ceilingPct > heroPct
+          ? `<div class="pc-meta">The \u201cup to ${ceilingPct}%\u201d above is this one \u2014 higher-return structures we can talk through.</div>`
+          : ""}
         <div class="pc-meta">${p.meta}</div>
         <div class="pc-actions">
           <a href="${ctaHref}" class="btn btn-primary btn-sm"${external ? ' target="_blank" rel="noopener"' : ""}>${ctaLabel}</a>
@@ -342,7 +362,10 @@
     const list = ordered().filter((p) =>
       filter === "all" ? true : filter === "inside" ? p.ir35 !== "outside" : p.ir35 !== "inside"
     );
-    grid.innerHTML = list.map((p, i) => card(p, i === 0)).join("");
+    // The ribbon is the recommendation, not the first row. It followed the list
+    // order, so filtering to "outside IR35" moved "Best match" onto whichever card
+    // happened to be left at the top.
+    grid.innerHTML = list.map((p) => card(p, p.best === true)).join("");
     // A stagger, so the list reads as arriving rather than as appearing at once.
     // The delay belongs to the position, so it is set here rather than in the card.
     grid.querySelectorAll(".provider-card").forEach((el, i) => {

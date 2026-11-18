@@ -14,9 +14,11 @@
   // Authored best first, because this order *is* the recommendation: the top card
   // carries the "Best match" ribbon and is the one the first email is about.
   //
-  // IFL leads. The other two are here because they can place a contractor on the
-  // same self-employed arrangement, so they are quoted at the same percentage — the
-  // column a provider uses is what decides its figure, not its position.
+  // IFL leads, and Runnymede follows on the same self-employed arrangement — the two
+  // of them share one figure, which is the number Cortoa works out. TJL and the two
+  // below it run PAYE payroll, so they are quoted at the PAYE column: a provider's
+  // figure comes from the route it actually places people on, not from the card's
+  // position.
   const PROVIDERS = [
     {
       name: "IFL Contracts",
@@ -39,7 +41,7 @@
       name: "TJL Contractors",
       url: "",                     // add the provider's site to switch the CTA to "Visit site"
       ir35: "inside",
-      series: "se",
+      series: "paye",
       features: [
         "Free insurance cover",
         "No join or exit fees",

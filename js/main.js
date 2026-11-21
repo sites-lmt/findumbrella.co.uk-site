@@ -49,6 +49,25 @@
   const arriving = new URLSearchParams(location.search);
   const carrying = CARRY.filter((key) => arriving.get(key));
 
+  /* Tell Bidsphere which click ids this site can actually see.
+
+     Names only — never a value — so this cannot carry a visitor's identifier off the site. It exists so the
+     tracking screen can say "your site is capturing gclid" rather than guessing, and it is the only thing
+     this site ever sends to Bidsphere. The id in the path is Find Umbrella's own business record.
+
+     Fired once per page load, and only when something arrived: an ordinary organic visit sends nothing at
+     all, because there is nothing to report. */
+  const BEACON = "https://api.bidsphere.co/api/tracking/site/b167c63cfcd848f9a504/beacon";
+  if (carrying.length) {
+    try {
+      const body = JSON.stringify({ fields: carrying, page: location.pathname });
+      if (navigator.sendBeacon) navigator.sendBeacon(BEACON, body);
+      else fetch(BEACON, { method: "POST", body, keepalive: true }).catch(() => {});
+    } catch (e) {
+      /* A beacon must never affect the page. */
+    }
+  }
+
   if (carrying.length) {
     document.querySelectorAll("a[href]").forEach((a) => {
       const href = a.getAttribute("href");

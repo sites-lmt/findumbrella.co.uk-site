@@ -132,8 +132,8 @@
     },
     "IFL Contracts": {
       logo: "iflcontracts-logo.png",
-      url: "https://www.iflmanagement.co.uk/",
-      phone: "01784 618224",
+      url: "https://www.iflcontracts.co.uk/",
+      phone: "01784 618027",
       profile: [
         "As part of the successful IFL Group, we have over 18 years' experience working with contractors, giving us insight into your needs and work practices. We currently manage over £16 million in funds and have over 400 contractor 'partners'.",
         "We work with all the major agencies throughout the UK and are familiar with their preferred working practices to ensure swift payment of all accounts.",
@@ -296,6 +296,112 @@
   if (quote.agency && quote.viaAgency !== "No") document.getElementById("factAgency").textContent = quote.agency;
   else document.getElementById("factAgencyChip").hidden = true;
   if (isDemo) document.getElementById("demoNote").hidden = false;
+
+  /* ======== THE ILLUSTRATION REQUEST ========
+     A mailto, because this site has no endpoint of its own — Cortoa's inbound API
+     belongs to the quote form, and a second form there is a platform change, not a
+     page change. So the answers ride in the body instead: the enquiry arrives
+     already qualified, and the visitor adds a name and a number and nothing else.
+
+     Example figures are deliberately not carried. A visitor who landed here
+     directly never gave a rate, and emailing "£500/day" from the placeholder would
+     be a fact about this page rather than about them.
+
+     The URL is included for attribution: it carries the gclid the site went to some
+     trouble to keep, and this is the one path on the page where it would otherwise
+     be lost entirely. */
+  (function illustrationLinks() {
+    const rateLine = document.getElementById("factRate").textContent;
+    const ir35Line = quote.ir35 === "Not sure" ? "IR35 to confirm" : quote.ir35 + " IR35";
+    const subject = isDemo
+      ? "Tax illustration request — IFL Contracts"
+      : "Tax illustration request — " + rateLine + ", " + ir35Line;
+
+    const body = [
+      "Hi Find Umbrella,",
+      "",
+      "Please send me my full tax illustration, based on the IFL Contracts match on your results page.",
+      "",
+    ];
+    if (!isDemo) {
+      body.push("Rate: " + rateLine, "Days per week: " + days, "IR35 position: " + ir35Line);
+      if (quote.agency && quote.viaAgency !== "No") body.push("Agency: " + quote.agency);
+      body.push("");
+    }
+    body.push("My name:", "Best number to call:", "", "Sent from: " + location.href);
+
+    const href = "mailto:info@findumbrella.co.uk"
+      + "?subject=" + encodeURIComponent(subject)
+      + "&body=" + encodeURIComponent(body.join("\n"));
+    document.querySelectorAll("[data-illustration-request]").forEach((a) => a.setAttribute("href", href));
+  })();
+
+  /* ======== WHEN THE MAILTO OPENS NOTHING ========
+     Chrome on Windows with no default mail app does nothing at all on a mailto:
+     no error, no dialog, no navigation. That cannot be detected directly, but a
+     handler takes the window's focus away — so a click still sitting on this page
+     a moment later opened nothing, and the address underneath is what the visitor
+     needs. It brightens rather than replacing the button, so nothing accuses the
+     page of being broken before anyone has clicked it, and the call button and the
+     visible address stand on their own without this script.
+
+     The rescue path is not a fallback for a missing feature: the address is real
+     text on the page, selectable and copyable by hand. The button only saves the
+     select-drag. */
+  (function rescuePath() {
+    let leftThePage = false;
+    window.addEventListener("blur", () => { leftThePage = true; });
+    document.addEventListener("visibilitychange", () => { if (document.hidden) leftThePage = true; });
+
+    document.querySelectorAll("[data-illustration-request]").forEach((link) => {
+      link.addEventListener("click", () => {
+        leftThePage = false;
+        setTimeout(() => {
+          if (leftThePage) return;
+          const box = link.closest(".next-step, .cta-band");
+          const alt = box && box.querySelector(".ask-alt");
+          if (!alt) return;
+          // The wording changes only after a click that provably opened nothing:
+          // up to that point "No email app?" is a guess, and after it the guess is
+          // the visitor's own experience, so saying it plainly costs nothing.
+          const lead = alt.querySelector("[data-alt-lead]");
+          if (lead) lead.textContent = "Your email app didn’t open?";
+          alt.classList.add("is-stalled");
+        }, 1200);
+      });
+    });
+
+    function copied(btn) {
+      const original = btn.textContent;
+      btn.textContent = "address copied";
+      setTimeout(() => { btn.textContent = original; }, 2000);
+    }
+
+    // Older browsers and documents without clipboard permission still get the
+    // address onto the clipboard rather than a button that quietly does nothing.
+    function copyBySelection(text, btn) {
+      const field = document.createElement("textarea");
+      field.value = text;
+      field.setAttribute("readonly", "");
+      field.style.position = "fixed";
+      field.style.opacity = "0";
+      document.body.appendChild(field);
+      field.select();
+      try { document.execCommand("copy"); copied(btn); } catch (e) { /* nothing left to try */ }
+      document.body.removeChild(field);
+    }
+
+    document.querySelectorAll("[data-copy-email]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const address = btn.dataset.copyEmail;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(address).then(() => copied(btn), () => copyBySelection(address, btn));
+        } else {
+          copyBySelection(address, btn);
+        }
+      });
+    });
+  })();
 
   /* ======== THE HERO, ON CUE ========
      Held rather than started here: a visitor arriving from the form meets the

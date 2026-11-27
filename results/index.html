@@ -81,8 +81,6 @@
   <div class="container">
     <div>Free, independent umbrella comparison for UK contractors</div>
     <div>
-      <span>📞 <a href="tel:02081912489">020 8191 2489</a></span>
-      <span class="sep">|</span>
       <a href="mailto:info@findumbrella.co.uk">✉ info@findumbrella.co.uk</a>
       <span class="sep">|</span>
       <span>Mon–Fri, 8am–7pm</span>
@@ -142,6 +140,31 @@
       Potential options for up to <b id="optionPct">—</b> depending on your situation.
     </p>
     <p class="disclaimer on-dark" id="demoNote" hidden style="color:#93a9bf;">You're viewing an example result. <a href="../quote/" style="color:#a3d5f1;">Run your own quote</a> for personalised matches.</p>
+
+    <!-- The ask belongs here, where the figure has just landed — the cards below
+         invite the visitor off-site by default, and a click that leaves is a lead
+         nobody captured. The email comes to us, not to IFL: the illustration is
+         written up and sent back with the introduction, which is the point of it.
+         The band at the foot of the page repeats these two actions word for word. -->
+    <div class="next-step reveal">
+      <p class="next-step-lbl">Recommended next step</p>
+      <p class="next-step-title">Request your full tax illustration from IFL Contracts</p>
+      <p class="next-step-copy">We'll work it out on your own rate and IR35 position and email it to you, with the fees and the joining offer on it — free, no obligation.</p>
+      <div class="actions">
+        <a class="btn btn-lightblue" href="mailto:info@findumbrella.co.uk" data-illustration-request>Email me my tax illustration</a>
+        <a class="btn btn-outline-light" href="tel:01784618027">Call IFL Contracts on 01784 618027</a>
+      </div>
+      <!-- Not "button not working?": that accuses the page of being broken at the
+           moment of highest intent, and most visitors' mail app opens fine. This
+           is an alternative route, said as a choice. js/results.js copies it, and
+           when a click has demonstrably opened nothing it says so plainly and
+           swaps the lead-in — at that point the visitor already knows. -->
+      <p class="ask-alt">
+        <span data-alt-lead>No email app?</span> Send “Tax illustration” to
+        <a href="mailto:info@iflcontracts.co.uk?subject=Tax%20illustration">info@iflcontracts.co.uk</a>
+        — or <button class="link-btn" type="button" data-copy-email="info@iflcontracts.co.uk">copy the address</button>.
+      </p>
+    </div>
   </div>
 </section>
 
@@ -220,8 +243,8 @@
   <div class="container">
     <div class="text-center reveal">
       <span class="eyebrow">Any questions?</span>
-      <h2 class="section-title">Call us on <a href="tel:02081912489">020 8191 2489</a></h2>
-      <p class="section-sub">Our team works 8am–7pm, Monday to Friday — or read the answers below.</p>
+      <h2 class="section-title">Frequently asked questions</h2>
+      <p class="section-sub">Our team works 8am–7pm, Monday to Friday — here are the answers to the questions we're asked most.</p>
     </div>
     <div class="faq">
       <div class="faq-item reveal">
@@ -252,12 +275,17 @@
 <section class="section">
   <div class="container">
     <div class="cta-band reveal">
-      <h2>Want a second opinion on your matches?</h2>
-      <p>We'll talk you through the fees, the joining offers and the real take-home difference — free, with no obligation.</p>
+      <h2>Your best match: IFL Contracts</h2>
+      <p>Request your full tax illustration — we'll work it out on your own rate and IR35 position and email it to you, with the fees and the joining offer on it. Free advice, no obligation.</p>
       <div class="actions">
-        <a href="tel:02081912489" class="btn btn-lightblue">Call 020 8191 2489</a>
-        <a href="../quote/" class="btn btn-outline-light">Run a New Quote</a>
+        <a class="btn btn-lightblue" href="mailto:info@findumbrella.co.uk" data-illustration-request>Email me my tax illustration</a>
+        <a class="btn btn-outline-light" href="tel:01784618027">Call IFL Contracts on 01784 618027</a>
       </div>
+      <p class="ask-alt">
+        <span data-alt-lead>No email app?</span> Send “Tax illustration” to
+        <a href="mailto:info@iflcontracts.co.uk?subject=Tax%20illustration">info@iflcontracts.co.uk</a>
+        — or <button class="link-btn" type="button" data-copy-email="info@iflcontracts.co.uk">copy the address</button>.
+      </p>
     </div>
   </div>
 </section>
